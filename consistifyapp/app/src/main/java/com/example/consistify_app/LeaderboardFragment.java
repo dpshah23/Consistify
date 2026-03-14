@@ -222,17 +222,69 @@ public class LeaderboardFragment extends Fragment {
     }
     
     private void showChallengeDialog(String targetUserId, String targetUsername) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        builder.setTitle("Challenge " + targetUsername + " (3-min blitz)");
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        AlertDialog dialog = builder.create();
         
-        String[] options = {"Squats", "Pushups"};
-        builder.setItems(options, (dialog, which) -> {
-            String exerciseType = options[which].toLowerCase();
-            sendChallengeRequest(targetUserId, exerciseType);
+        LinearLayout layout = new LinearLayout(requireContext());
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(64, 64, 64, 64);
+        
+        android.graphics.drawable.GradientDrawable gd = new android.graphics.drawable.GradientDrawable();
+        gd.setColor(Color.parseColor("#1E1E1E"));
+        gd.setCornerRadius(32f);
+        layout.setBackground(gd);
+        
+        TextView title = new TextView(requireContext());
+        title.setText("Choose Exercise");
+        title.setTextColor(Color.WHITE);
+        title.setTextSize(20f);
+        title.setTypeface(null, Typeface.BOLD);
+        title.setPadding(0, 0, 0, 16);
+        layout.addView(title);
+
+        TextView subtitle = new TextView(requireContext());
+        subtitle.setText("Challenge " + targetUsername + " to a 3-min blitz!");
+        subtitle.setTextColor(Color.parseColor("#A0AAB2"));
+        subtitle.setTextSize(14f);
+        subtitle.setPadding(0, 0, 0, 48);
+        layout.addView(subtitle);
+
+        Button btnSquats = new Button(requireContext());
+        btnSquats.setText("Squats");
+        btnSquats.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#BB86FC")));
+        btnSquats.setTextColor(Color.BLACK);
+        btnSquats.setOnClickListener(v -> {
+            sendChallengeRequest(targetUserId, "squats");
+            dialog.dismiss();
         });
-        
-        builder.setNegativeButton("Cancel", null);
-        builder.show();
+        layout.addView(btnSquats);
+
+        Button btnPushups = new Button(requireContext());
+        btnPushups.setText("Pushups");
+        btnPushups.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#03DAC5")));
+        btnPushups.setTextColor(Color.BLACK);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        params.setMargins(0, 24, 0, 24);
+        btnPushups.setLayoutParams(params);
+        btnPushups.setOnClickListener(v -> {
+            sendChallengeRequest(targetUserId, "pushups");
+            dialog.dismiss();
+        });
+        layout.addView(btnPushups);
+
+        Button btnCancel = new Button(requireContext());
+        btnCancel.setText("Cancel");
+        btnCancel.setBackgroundColor(Color.TRANSPARENT);
+        btnCancel.setTextColor(Color.parseColor("#FF5252"));
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        layout.addView(btnCancel);
+
+        dialog.setView(layout);
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(Color.TRANSPARENT));
+        }
+        dialog.show();
     }
     
     private void sendChallengeRequest(String targetUserId, String exerciseType) {
