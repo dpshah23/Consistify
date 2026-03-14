@@ -617,8 +617,8 @@ This project is licensed under the MIT License. See LICENSE for details.
 ---
 
 ## 👥 Team & Credits
-Lead Developer: Deep Shah (@dpshah23)
-Backend App Developer: Raghav Raval(@RaghavRaval)
+Lead Developer: Deep Shah (@dpshah23)<br>
+Backend App Developer: Raghav Raval(@RaghavRaval)<br>
 Built at Reckon 7.0 Hackathon
 
 ---
