@@ -53,60 +53,7 @@ This aligns with behavioral psychology research on habit formation. **Consistenc
 ## 🏗️ Solution Architecture
 
 ### System Architecture Diagram
-```mermaid
-flowchart TD
-	subgraph Mobile App
-		A1[User Signup/Onboarding]
-		A2[Calibration Test]
-		A3[Daily Quest UI]
-		A4[Activity Logging]
-		A5[Social Feed]
-		A6[Rewards Store]
-	end
-	subgraph Backend API (Django)
-		B1[Accounts Service]
-		B2[Activity Service]
-		B3[Gamification Engine]
-		B4[Analytics Service]
-		B5[Reward Service]
-		B6[Social Service]
-	end
-	subgraph Database
-		D1[(UserCustom)]
-		D2[(DailyActivity)]
-		D3[(UserStats)]
-		D4[(Streak)]
-		D5[(XPLog)]
-		D6[(RewardItem)]
-		D7[(Redemption)]
-		D8[(Post)]
-		D9[(Like)]
-		D10[(Leaderboard)]
-		D11[(Profile)]
-	end
-	A1-->|REST|B1
-	A2-->|REST|B2
-	A3-->|REST|B2
-	A4-->|REST|B2
-	A5-->|REST|B6
-	A6-->|REST|B5
-	B1-->|ORM|D1
-	B1-->|ORM|D11
-	B2-->|ORM|D2
-	B3-->|ORM|D3
-	B3-->|ORM|D4
-	B3-->|ORM|D5
-	B4-->|ORM|D10
-	B5-->|ORM|D6
-	B5-->|ORM|D7
-	B6-->|ORM|D8
-	B6-->|ORM|D9
-	B1-->|User Auth|A1
-	B5-->|Reward Status|A6
-	B3-->|Gamification State|A3
-	B4-->|Leaderboard|A3
-	B6-->|Feed|A5
-```
+
 
 ---
 ## 🕹️ Gamification Flow
