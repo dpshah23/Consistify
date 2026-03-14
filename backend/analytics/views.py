@@ -5,7 +5,9 @@ from accounts.models import UserCustom
 from activity.models import DailyActivity
 from gamification.models import UserStats, Streak
 from .models import Leaderboard
+from django.views.decorators.csrf import csrf_exempt
 
+@csrf_exempt
 def get_dashboard_summary(request):
     """
     Unified API for Android home page dashboard.
@@ -75,7 +77,7 @@ def get_dashboard_summary(request):
         except UserCustom.DoesNotExist:
             return JsonResponse({"error": "User not found"}, status=404)
 
-
+@csrf_exempt
 def get_weekly_chart_data(request):
     """
     Returns XP or Activity data for the past 7 days 
@@ -113,6 +115,7 @@ def get_weekly_chart_data(request):
             return JsonResponse({"error": "User not found"}, status=404)
 
 
+@csrf_exempt
 def get_leaderboard(request):
     """
     Returns top users sorted by XP or Consistency Score.

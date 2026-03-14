@@ -8,7 +8,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class ApiClient {
     private static Retrofit retrofit = null;
     // Updated IP address for physical device targeting Windows local network
-    public static final String BASE_URL = "http://10.183.55.101:8000/"; 
+    public static final String BASE_URL = "http://192.168.31.250:8000/";
 
     public static ConsistifyApi getApi() {
         if (retrofit == null) {

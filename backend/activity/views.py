@@ -5,7 +5,10 @@ from .models import DailyActivity
 from accounts.models import UserCustom
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 # Create your views here.
+from django.views.decorators.csrf import csrf_exempt
 
+
+@csrf_exempt
 def log_activity(request):
     if request.method=="POST":
         user_id = request.POST.get("user_id")
@@ -26,6 +29,7 @@ def log_activity(request):
         except UserCustom.DoesNotExist:
             return JsonResponse({"error":"User not found"}, status=404)
         
+@csrf_exempt
 def get_activity(request):
     if request.method=="GET":
         user_id = request.GET.get("user_id")
@@ -42,6 +46,7 @@ def get_activity(request):
         except UserCustom.DoesNotExist:
             return JsonResponse({"error":"User not found"}, status=404)
         
+@csrf_exempt
 def today(request):
     if request.method=="GET":
         user_id = request.GET.get("user_id")
@@ -56,6 +61,7 @@ def today(request):
         except UserCustom.DoesNotExist:
             return JsonResponse({"error":"User not found"}, status=404)
         
+@csrf_exempt
 def activity_history(request, page=1):
     if request.method == "GET":
         user_id = request.GET.get("user_id")
