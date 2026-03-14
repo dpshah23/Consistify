@@ -1,5 +1,6 @@
 package com.example.consistify_app;
 
+import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -13,6 +14,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.IBinder;
+import android.os.SystemClock;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
@@ -58,6 +60,31 @@ public class StepTrackerService extends Service implements SensorEventListener {
         }
         
         return START_STICKY;
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        // Restart service immediately if swiped away/killed from recent apps
+        Intent restartServiceIntent = new Intent(getApplicationContext(), this.getClass());
+        restartServiceIntent.setPackage(getPackageName());
+        
+        PendingIntent restartServicePendingIntent = PendingIntent.getService(
+                getApplicationContext(),
+                1,
+                restartServiceIntent,
+                PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE
+        );
+        
+        AlarmManager alarmService = (AlarmManager) getApplicationContext().getSystemService(Context.ALARM_SERVICE);
+        if (alarmService != null) {
+            alarmService.set(
+                    AlarmManager.ELAPSED_REALTIME,
+                    SystemClock.elapsedRealtime() + 1000,
+                    restartServicePendingIntent
+            );
+        }
+        
+        super.onTaskRemoved(rootIntent);
     }
 
     @Override
@@ -122,7 +149,11 @@ public class StepTrackerService extends Service implements SensorEventListener {
                 .setContentTitle("Consistify Steps Tracking")
                 .setContentText("Steps walked today: " + currentSteps)
                 .setContentIntent(contentPendingIntent)
-                .setOngoing(true)
+                .setOngoing(true) // Makes it non-dismissible
+                .setAutoCancel(false)
+                .setCategory(NotificationCompat.CATEGORY_SERVICE)
+                .setPriority(NotificationCompat.PRIORITY_MAX)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setOnlyAlertOnce(true)
                 .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
                 .build();

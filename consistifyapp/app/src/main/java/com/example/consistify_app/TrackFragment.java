@@ -13,6 +13,11 @@ import android.hardware.SensorManager;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.os.Build;
+import androidx.core.app.NotificationCompat;
 import android.media.Image;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -182,6 +187,8 @@ import java.util.concurrent.Executors;
 
             Toast.makeText(requireContext(), "Session Ended. " + squats + " squats, " + pushups + " pushups logged!", Toast.LENGTH_LONG).show();
             
+            sendSessionEndNotification(squats, pushups);
+
             // Reset counters
             repCounter.reset();
             updateUI(repCounter.analyze(null, 0));
@@ -335,6 +342,48 @@ import java.util.concurrent.Executors;
         super.onDestroyView();
         if (cameraProvider != null) {
             cameraProvider.unbindAll();
+        }
+    }
+
+    private void sendSessionEndNotification(int squats, int pushups) {
+        if (getContext() == null) return;
+        
+        NotificationManager notificationManager = (NotificationManager) getContext()
+                .getSystemService(Context.NOTIFICATION_SERVICE);
+        String channelId = "workout_session_channel";
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    channelId,
+                    "Workout Sessions",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            channel.setDescription("Notifications for completed workouts");
+            if (notificationManager != null) {
+                notificationManager.createNotificationChannel(channel);
+            }
+        }
+
+        Intent intent = new Intent(getContext(), MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        
+        PendingIntent pendingIntent = PendingIntent.getActivity(
+                getContext(),
+                0,
+                intent,
+                PendingIntent.FLAG_IMMUTABLE
+        );
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getContext(), channelId)
+                .setSmallIcon(R.drawable.ic_profile)
+                .setContentTitle("Workout Complete! 🏆")
+                .setContentText("You just logged " + squats + " squats and " + pushups + " pushups. Beast mode!")
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setContentIntent(pendingIntent)
+                .setAutoCancel(true);
+
+        if (notificationManager != null) {
+            notificationManager.notify((int) System.currentTimeMillis(), builder.build());
         }
     }
 }

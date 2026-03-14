@@ -37,7 +37,7 @@ public interface ConsistifyApi {
     );
 
     @FormUrlEncoded
-    @POST("gamification/process/")
+    @POST("api/gamification/process/")
     Call<JsonObject> syncGamification(
             @Field("user_id") String userId,
             @Field("squats") int squats,
@@ -45,6 +45,6 @@ public interface ConsistifyApi {
             @Field("steps") int steps
     );
 
-    @GET("analytics/leaderboard/")
+    @GET("api/analytics/leaderboard/")
     Call<JsonObject> getLeaderboard(@Query("timeframe") String timeframe);
 }

@@ -29,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         
         scheduleMidnightSync();
+        scheduleWaterReminder();
         
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -125,5 +126,17 @@ public class MainActivity extends AppCompatActivity {
                 "midnight_sync",
                 ExistingPeriodicWorkPolicy.KEEP,
                 syncWorkRequest);
+    }
+
+    private void scheduleWaterReminder() {
+        PeriodicWorkRequest waterWorkRequest = new PeriodicWorkRequest.Builder(
+                WaterReminderWorker.class, 2, TimeUnit.HOURS)
+                .setInitialDelay(2, TimeUnit.HOURS)
+                .build();
+
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+                "water_reminder",
+                ExistingPeriodicWorkPolicy.KEEP,
+                waterWorkRequest);
     }
 }

@@ -7,8 +7,10 @@ import android.database.sqlite.SQLiteDatabase;
 
 public class GamificationManager {
     private GamificationDatabaseHelper dbHelper;
+    private Context mContext;
 
     public GamificationManager(Context context) {
+        this.mContext = context;
         dbHelper = new GamificationDatabaseHelper(context);
     }
     
@@ -176,5 +178,46 @@ public class GamificationManager {
         // Technically this worker runs at midnight, but just in case,
         // rather than deleting, we let ensureDailyRecordExists() spawn a new day entry tomorrow.
         // We can optionally clear the active memory cache here if any exist.
+    }
+
+    public int[] getDailyQuestTargets() {
+        String level = getCurrentLevel();
+        if (level.contains("Tortoise")) return new int[]{10, 5, 2000}; // squats, pushups, steps
+        if (level.contains("Wolf")) return new int[]{20, 10, 5000};
+        if (level.contains("Eagle")) return new int[]{40, 20, 8000};
+        if (level.contains("Leopard")) return new int[]{60, 30, 10000};
+        return new int[]{100, 50, 15000}; // Lion
+    }
+
+    public boolean isDailyQuestCompleted() {
+        int[] targets = getDailyQuestTargets();
+        return getDailySquats() >= targets[0] && 
+               getDailyPushups() >= targets[1] && 
+               getDailySteps() >= targets[2];
+    }
+
+    public boolean claimDailyQuestReward() {
+        String today = GamificationDatabaseHelper.getTodayDateString();
+        android.content.SharedPreferences prefs = mContext.getSharedPreferences("quests", Context.MODE_PRIVATE);
+        boolean alreadyClaimed = prefs.getBoolean("quest_claimed_" + today, false);
+        
+        if (!alreadyClaimed && isDailyQuestCompleted()) {
+            // Reward: +50 XP, +20 FitCoins
+            SQLiteDatabase db = dbHelper.getWritableDatabase();
+            db.execSQL("UPDATE " + GamificationDatabaseHelper.TABLE_USER_PROFILE + 
+                    " SET total_xp = total_xp + 50, " +
+                    "total_fitcoins = total_fitcoins + 20 " + 
+                    " WHERE id = 1");
+            
+            prefs.edit().putBoolean("quest_claimed_" + today, true).apply();
+            return true;
+        }
+        return false;
+    }
+
+    public boolean isDailyQuestClaimed() {
+        String today = GamificationDatabaseHelper.getTodayDateString();
+        android.content.SharedPreferences prefs = mContext.getSharedPreferences("quests", Context.MODE_PRIVATE);
+        return prefs.getBoolean("quest_claimed_" + today, false);
     }
 }

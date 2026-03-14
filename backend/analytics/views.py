@@ -130,7 +130,10 @@ def get_leaderboard(request):
         leaderboard_data = []
 
         if timeframe == "daily":
-            logs = XPLog.objects.filter(created_at__date=today)
+            # Using __gte logic makes it more robust with timestamp entries
+            start_of_day = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+            logs = XPLog.objects.filter(created_at__gte=start_of_day)
+            
             user_xp = logs.values('user__id', 'user__username').annotate(
                 total_xp=Sum('xp_amount')
             ).order_by('-total_xp')[:10]
@@ -140,14 +143,15 @@ def get_leaderboard(request):
                     "rank": index + 1,
                     "username": item['user__username'],
                     "xp": item['total_xp'],
-                    "level": "?", # Complex to join, mock or ignore for timeframe
+                    "level": "Unranked",
                     "consistency": 0,
                     "user_id": str(item['user__id'])
                 })
 
         elif timeframe == "weekly":
-            start_of_week = today - datetime.timedelta(days=7) # past 7 days
+            start_of_week = today - datetime.timedelta(days=7)
             logs = XPLog.objects.filter(created_at__date__gte=start_of_week)
+            
             user_xp = logs.values('user__id', 'user__username').annotate(
                 total_xp=Sum('xp_amount')
             ).order_by('-total_xp')[:10]
@@ -157,7 +161,7 @@ def get_leaderboard(request):
                     "rank": index + 1,
                     "username": item['user__username'],
                     "xp": item['total_xp'],
-                    "level": "?",
+                    "level": "Unranked",
                     "consistency": 0,
                     "user_id": str(item['user__id'])
                 })

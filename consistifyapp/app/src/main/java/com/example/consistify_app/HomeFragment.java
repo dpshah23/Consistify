@@ -46,6 +46,12 @@ public class HomeFragment extends Fragment {
     private TextView tvXp;
     private ProgressBar pbLevel;
     private TextView tvXpRemaining;
+    
+    // Quest View Variables
+    private TextView tvQuestSquat;
+    private TextView tvQuestPushup;
+    private TextView tvQuestStep;
+    private Button btnClaimQuest;
 
     private final BroadcastReceiver statsReceiver = new BroadcastReceiver() {
         @Override
@@ -68,6 +74,24 @@ public class HomeFragment extends Fragment {
         tvXp = view.findViewById(R.id.tv_home_xp);
         pbLevel = view.findViewById(R.id.pb_level);
         tvXpRemaining = view.findViewById(R.id.tv_xp_remaining);
+        
+        tvQuestSquat = view.findViewById(R.id.tv_quest_target_squat);
+        tvQuestPushup = view.findViewById(R.id.tv_quest_target_pushup);
+        tvQuestStep = view.findViewById(R.id.tv_quest_target_step);
+        btnClaimQuest = view.findViewById(R.id.btn_claim_quest);
+        
+        btnClaimQuest.setOnClickListener(v -> {
+            if (gamificationManager.claimDailyQuestReward()) {
+                Toast.makeText(getContext(), "Epic! Quest Claimed. +50 XP, +20 Coins!", Toast.LENGTH_LONG).show();
+                
+                // Immediately broadcast to refresh UI logic across app
+                Intent updateIntent = new Intent("STATS_UPDATED");
+                updateIntent.setPackage(requireContext().getPackageName());
+                requireContext().sendBroadcast(updateIntent);
+                
+                updateGamificationUI();
+            }
+        });
         
         updateGamificationUI();
 
@@ -133,6 +157,48 @@ public class HomeFragment extends Fragment {
             animation.start();
             
             tvXpRemaining.setText((nextXp - currentXp) + " XP to next level");
+        }
+        
+        updateDailyQuestUI();
+    }
+    
+    private void updateDailyQuestUI() {
+        if (!isAdded() || getContext() == null) return;
+        
+        int[] targets = gamificationManager.getDailyQuestTargets();
+        int curSquats = gamificationManager.getDailySquats();
+        int curPushups = gamificationManager.getDailyPushups();
+        int curSteps = gamificationManager.getDailySteps();
+        
+        // Update Text
+        tvQuestSquat.setText("• " + curSquats + " / " + targets[0] + " squats");
+        tvQuestPushup.setText("• " + curPushups + " / " + targets[1] + " pushups");
+        tvQuestStep.setText("• " + curSteps + " / " + targets[2] + " steps");
+
+        // Color coding for completeness
+        tvQuestSquat.setTextColor(curSquats >= targets[0] ? Color.parseColor("#00E676") : Color.parseColor("#BBBBBB"));
+        tvQuestPushup.setTextColor(curPushups >= targets[1] ? Color.parseColor("#00E676") : Color.parseColor("#BBBBBB"));
+        tvQuestStep.setTextColor(curSteps >= targets[2] ? Color.parseColor("#00E676") : Color.parseColor("#BBBBBB"));
+
+        // Claim logic
+        boolean isClaimed = gamificationManager.isDailyQuestClaimed();
+        boolean isComplete = curSquats >= targets[0] && curPushups >= targets[1] && curSteps >= targets[2];
+
+        if (isClaimed) {
+            btnClaimQuest.setText("Reward Claimed ✓");
+            btnClaimQuest.setEnabled(false);
+            btnClaimQuest.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#1B5E20")));
+            btnClaimQuest.setTextColor(Color.parseColor("#81C784"));
+        } else if (isComplete) {
+            btnClaimQuest.setText("Claim +50 XP / +20 Coins");
+            btnClaimQuest.setEnabled(true);
+            btnClaimQuest.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#00E676")));
+            btnClaimQuest.setTextColor(Color.WHITE);
+        } else {
+            btnClaimQuest.setText("Quest in Progress");
+            btnClaimQuest.setEnabled(false);
+            btnClaimQuest.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#333333")));
+            btnClaimQuest.setTextColor(Color.parseColor("#888888"));
         }
     }
 
