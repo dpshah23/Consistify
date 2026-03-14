@@ -9,8 +9,11 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.animation.ObjectAnimator;
+import android.view.animation.DecelerateInterpolator;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -46,7 +49,31 @@ public class HomeFragment extends Fragment {
         TextView tvXp = view.findViewById(R.id.tv_home_xp);
         
         tvLevel.setText("Level: " + manager.getCurrentLevel());
-        tvXp.setText(manager.getTotalXP() + " XP");
+        tvXp.setText(manager.getTotalXP() + " XP (Total)");
+
+        ProgressBar pbLevel = view.findViewById(R.id.pb_level);
+        TextView tvXpRemaining = view.findViewById(R.id.tv_xp_remaining);
+        
+        int currentXp = manager.getTotalXP();
+        int baseXP = manager.getBaseXPForCurrentLevel();
+        int nextXp = manager.getXPForNextLevel();
+        
+        if (currentXp >= 1000) {
+            pbLevel.setMax(100);
+            pbLevel.setProgress(100);
+            tvXpRemaining.setText("Max Level Reached!");
+        } else {
+            int xpInCurrentLevel = currentXp - baseXP;
+            int xpRequiredForThisLevel = nextXp - baseXP;
+            pbLevel.setMax(xpRequiredForThisLevel);
+            
+            ObjectAnimator animation = ObjectAnimator.ofInt(pbLevel, "progress", 0, xpInCurrentLevel);
+            animation.setDuration(1200); // 1.2 seconds smooth animation
+            animation.setInterpolator(new DecelerateInterpolator());
+            animation.start();
+            
+            tvXpRemaining.setText((nextXp - currentXp) + " XP to next level");
+        }
 
         postsContainer = view.findViewById(R.id.posts_container);
         tvLoading = view.findViewById(R.id.tv_loading_posts);

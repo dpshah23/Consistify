@@ -16,99 +16,25 @@
 > Task :app:processDebugManifestForPackage UP-TO-DATE
 > Task :app:processDebugResources UP-TO-DATE
 
+> Task :app:compileDebugJavaWithJavac
+E:\consitify\consistifyapp\app\src\main\java\com\example\consistify_app\TrackFragment.java:264: error: cannot find symbol
+            currentStepsWalked++;
+            ^
+  symbol:   variable currentStepsWalked
+  location: class TrackFragment
+E:\consitify\consistifyapp\app\src\main\java\com\example\consistify_app\TrackFragment.java:265: error: cannot find symbol
+        } else if (event.sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION && stepEngine != null) {
+                                                                                ^
+  symbol:   variable stepEngine
+  location: class TrackFragment
+E:\consitify\consistifyapp\app\src\main\java\com\example\consistify_app\TrackFragment.java:266: error: cannot find symbol
+            stepEngine.onSensorChanged(event);
+            ^
+  symbol:   variable stepEngine
+  location: class TrackFragment
+3 errors
+
 > Task :app:compileDebugJavaWithJavac FAILED
-E:\consitify\consistifyapp\app\src\main\java\com\example\consistify_app\HomeFragment.java:49: error: cannot find symbol
-        tvXp.setText(manager.getTotalXp() + " XP");
-                            ^
-  symbol:   method getTotalXp()
-  location: variable manager of type GamificationManager
-E:\consitify\consistifyapp\app\src\main\java\com\example\consistify_app\TrackFragment.java:116: error: constructor StepDetectionEngine in class StepDetectionEngine cannot be applied to given types;
-                stepEngine = new StepDetectionEngine();
-                             ^
-  required: Listener
-  found:    no arguments
-  reason: actual and formal argument lists differ in length
-E:\consitify\consistifyapp\app\src\main\java\com\example\consistify_app\TrackFragment.java:182: error: cannot find symbol
-            stepEngine.processAccelerometerEvent(event.timestamp, event.values[0], event.values[1], event.values[2]);
-                      ^
-  symbol:   method processAccelerometerEvent(long,float,float,float)
-  location: variable stepEngine of type StepDetectionEngine
-E:\consitify\consistifyapp\app\src\main\java\com\example\consistify_app\TrackFragment.java:183: error: cannot find symbol
-            int snapshotSteps = stepEngine.getSnapshot().steps;
-                                          ^
-  symbol:   method getSnapshot()
-  location: variable stepEngine of type StepDetectionEngine
-E:\consitify\consistifyapp\app\src\main\java\com\example\consistify_app\WorkoutSyncWorker.java:72: error: cannot find symbol
-        if (!NetworkUtils.isInternetAvailable(context)) {
-             ^
-  symbol:   variable NetworkUtils
-  location: class WorkoutSyncWorker
-E:\consitify\consistifyapp\app\src\main\java\com\example\consistify_app\WorkoutSyncWorker.java:76: error: cannot find symbol
-        WorkoutDatabaseHelper databaseHelper = new WorkoutDatabaseHelper(context);
-        ^
-  symbol:   class WorkoutDatabaseHelper
-  location: class WorkoutSyncWorker
-E:\consitify\consistifyapp\app\src\main\java\com\example\consistify_app\WorkoutSyncWorker.java:76: error: cannot find symbol
-        WorkoutDatabaseHelper databaseHelper = new WorkoutDatabaseHelper(context);
-                                                   ^
-  symbol:   class WorkoutDatabaseHelper
-  location: class WorkoutSyncWorker
-E:\consitify\consistifyapp\app\src\main\java\com\example\consistify_app\WorkoutSyncWorker.java:77: error: cannot find symbol
-        ExerciseApiService apiService = ApiClient.getInstance().create(ExerciseApiService.class);
-        ^
-  symbol:   class ExerciseApiService
-  location: class WorkoutSyncWorker
-E:\consitify\consistifyapp\app\src\main\java\com\example\consistify_app\WorkoutSyncWorker.java:77: error: cannot find symbol
-        ExerciseApiService apiService = ApiClient.getInstance().create(ExerciseApiService.class);
-                                                                       ^
-  symbol:   class ExerciseApiService
-  location: class WorkoutSyncWorker
-E:\consitify\consistifyapp\app\src\main\java\com\example\consistify_app\WorkoutSyncWorker.java:77: error: cannot find symbol
-        ExerciseApiService apiService = ApiClient.getInstance().create(ExerciseApiService.class);
-                                        ^
-  symbol:   variable ApiClient
-  location: class WorkoutSyncWorker
-E:\consitify\consistifyapp\app\src\main\java\com\example\consistify_app\WorkoutSyncWorker.java:78: error: cannot find symbol
-        List<WorkoutSessionLocalRecord> pendingSessions = databaseHelper.getPendingSessions();
-             ^
-  symbol:   class WorkoutSessionLocalRecord
-  location: class WorkoutSyncWorker
-E:\consitify\consistifyapp\app\src\main\java\com\example\consistify_app\WorkoutSyncWorker.java:81: error: cannot find symbol
-            for (WorkoutSessionLocalRecord record : pendingSessions) {
-                 ^
-  symbol:   class WorkoutSessionLocalRecord
-  location: class WorkoutSyncWorker
-E:\consitify\consistifyapp\app\src\main\java\com\example\consistify_app\WorkoutSyncWorker.java:84: error: cannot find symbol
-                    Response<SessionResponse> createResponse = apiService
-                             ^
-  symbol:   class SessionResponse
-  location: class WorkoutSyncWorker
-E:\consitify\consistifyapp\app\src\main\java\com\example\consistify_app\WorkoutSyncWorker.java:85: error: cannot find symbol
-                            .startSession(new SessionStartRequest())
-                                              ^
-  symbol:   class SessionStartRequest
-  location: class WorkoutSyncWorker
-E:\consitify\consistifyapp\app\src\main\java\com\example\consistify_app\WorkoutSyncWorker.java:94: error: cannot find symbol
-                List<WorkoutRepLocalRecord> pendingReps = databaseHelper.getPendingRepsForSession(record.localId);
-                     ^
-  symbol:   class WorkoutRepLocalRecord
-  location: class WorkoutSyncWorker
-E:\consitify\consistifyapp\app\src\main\java\com\example\consistify_app\WorkoutSyncWorker.java:95: error: cannot find symbol
-                for (WorkoutRepLocalRecord rep : pendingReps) {
-                     ^
-  symbol:   class WorkoutRepLocalRecord
-  location: class WorkoutSyncWorker
-E:\consitify\consistifyapp\app\src\main\java\com\example\consistify_app\WorkoutSyncWorker.java:97: error: cannot find symbol
-                            new RepRequest(remoteId, rep.exerciseType, rep.repNumber)
-                                ^
-  symbol:   class RepRequest
-  location: class WorkoutSyncWorker
-E:\consitify\consistifyapp\app\src\main\java\com\example\consistify_app\WorkoutSyncWorker.java:111: error: cannot find symbol
-                        new SessionUpdateRequest(
-                            ^
-  symbol:   class SessionUpdateRequest
-  location: class WorkoutSyncWorker
-18 errors
 
 FAILURE: Build failed with an exception.
 
@@ -120,5 +46,5 @@ Execution failed for task ':app:compileDebugJavaWithJavac'.
 > Run with --info option to get more log output.
 > Run with --scan to get full insights.
 
-BUILD FAILED in 3s
+BUILD FAILED in 5s
 15 actionable tasks: 1 executed, 14 up-to-date

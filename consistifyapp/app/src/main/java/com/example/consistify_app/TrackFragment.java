@@ -1,12 +1,18 @@
 package com.example.consistify_app;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.media.Image;
 import android.os.Bundle;
 import android.os.SystemClock;
@@ -15,6 +21,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,7 +49,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class TrackFragment extends Fragment implements SensorEventListener {
+    public class TrackFragment extends Fragment {
 
     private static final String TAG = "TrackFragment";
 
@@ -57,7 +65,15 @@ public class TrackFragment extends Fragment implements SensorEventListener {
     private Button autoModeButton;
     private Button squatModeButton;
     private Button pushupModeButton;
-    private Button saveSessionButton;
+    private Button startDetectionButton;
+    private Button endSessionButton;
+
+    private LinearLayout hudContainer;
+    private FrameLayout cameraContainer;
+    private TextView globalStepCountText;
+    private TextView hudDistanceText;
+    private TextView hudCaloriesText;
+    private TextView hudPaceText;
 
     private ExecutorService cameraExecutor;
     private PoseDetector poseDetector;
@@ -68,11 +84,19 @@ public class TrackFragment extends Fragment implements SensorEventListener {
     // Gamification Manager to save stats
     private GamificationManager gamificationManager;
 
-    // Step tracking
-    private SensorManager sensorManager;
-    private Sensor stepSensor;
-    private StepDetectionEngine stepEngine;
-    private int currentStepsWalked = 0;
+    private final BroadcastReceiver stepReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if ("STEPS_UPDATED".equals(intent.getAction())) {
+                int totalSteps = intent.getIntExtra("TOTAL_STEPS", gamificationManager.getDailySteps());
+                float distance = intent.getFloatExtra("DISTANCE", totalSteps * 0.72f);
+                float calories = intent.getFloatExtra("CALORIES", totalSteps * 0.040f);
+                float speed = intent.getFloatExtra("SPEED", 4.0f);
+                
+                updateGlobalStepCount(totalSteps, distance, calories, speed);
+            }
+        }
+    };
 
     private final ActivityResultLauncher<String> cameraPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), granted -> {
@@ -92,36 +116,30 @@ public class TrackFragment extends Fragment implements SensorEventListener {
 
         gamificationManager = new GamificationManager(requireContext());
 
+        hudContainer = view.findViewById(R.id.hud_container);
+        cameraContainer = view.findViewById(R.id.camera_container);
+        globalStepCountText = view.findViewById(R.id.globalStepCountText);
+        hudDistanceText = view.findViewById(R.id.tv_hud_distance);
+        hudCaloriesText = view.findViewById(R.id.tv_hud_calories);
+        hudPaceText = view.findViewById(R.id.tv_hud_pace);
+
         previewView = view.findViewById(R.id.previewView);
         exerciseModeText = view.findViewById(R.id.exerciseModeText);
         phaseText = view.findViewById(R.id.phaseText);
         instructionText = view.findViewById(R.id.instructionText);
         squatCountText = view.findViewById(R.id.squatCountText);
         pushupCountText = view.findViewById(R.id.pushupCountText);
-        stepCountText = view.findViewById(R.id.stepCountText);
         permissionHintText = view.findViewById(R.id.permissionHintText);
         
         autoModeButton = view.findViewById(R.id.autoModeButton);
         squatModeButton = view.findViewById(R.id.squatModeButton);
         pushupModeButton = view.findViewById(R.id.pushupModeButton);
-        saveSessionButton = view.findViewById(R.id.btn_save_session);
+        startDetectionButton = view.findViewById(R.id.btn_start_detection);
+        endSessionButton = view.findViewById(R.id.btn_end_session);
 
-        // Step Counter logic setup
-        sensorManager = (SensorManager) requireActivity().getSystemService(Context.SENSOR_SERVICE);
-        if (sensorManager != null) {
-            stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR);
-            // Fallback to accelerometer for step engine if needed
-            if (stepSensor == null) {
-                stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
-                stepEngine = new StepDetectionEngine(snapshot -> {
-                    if (snapshot.steps > 0) {
-                        currentStepsWalked += snapshot.steps;
-                        stepEngine.reset();
-                        stepCountText.setText(String.valueOf(currentStepsWalked));
-                    }
-                });
-            }
-        }
+        // Compute baseline approximations if service hasn't broadcast yet
+        int steps = gamificationManager.getDailySteps();
+        updateGlobalStepCount(steps, steps * 0.72f, steps * 0.040f, 0f);
 
         cameraExecutor = Executors.newSingleThreadExecutor();
         poseDetector = PoseDetection.getClient(
@@ -135,62 +153,75 @@ public class TrackFragment extends Fragment implements SensorEventListener {
         squatModeButton.setOnClickListener(v -> applyDetectionMode(ExerciseRepCounter.DetectionMode.SQUAT));
         pushupModeButton.setOnClickListener(v -> applyDetectionMode(ExerciseRepCounter.DetectionMode.PUSHUP));
 
-        saveSessionButton.setOnClickListener(v -> {
+        startDetectionButton.setOnClickListener(v -> {
+            hudContainer.setVisibility(View.GONE);
+            cameraContainer.setVisibility(View.VISIBLE);
+            if (hasCameraPermission()) {
+                previewView.post(this::startCamera);
+            } else {
+                cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA);
+            }
+        });
+
+        endSessionButton.setOnClickListener(v -> {
             int squats = repCounter.analyze(null, SystemClock.elapsedRealtime()).squatCount;
             int pushups = repCounter.analyze(null, SystemClock.elapsedRealtime()).pushupCount;
             
             gamificationManager.addSquats(squats);
             gamificationManager.addPushups(pushups);
-            gamificationManager.addSteps(currentStepsWalked);
             
-            Toast.makeText(requireContext(), "Saved: " + squats + " squats, " + pushups + " pushups, " + currentStepsWalked + " steps! XP & Coins awarded.", Toast.LENGTH_LONG).show();
+            // Unbind camera
+            if (cameraProvider != null) {
+                cameraProvider.unbindAll();
+            }
+
+            Toast.makeText(requireContext(), "Session Ended. " + squats + " squats, " + pushups + " pushups logged!", Toast.LENGTH_LONG).show();
             
             // Reset counters
             repCounter.reset();
-            currentStepsWalked = 0;
             updateUI(repCounter.analyze(null, 0));
-            stepCountText.setText("0");
+            
+            cameraContainer.setVisibility(View.GONE);
+            hudContainer.setVisibility(View.VISIBLE);
         });
 
         applyDetectionMode(ExerciseRepCounter.DetectionMode.AUTO);
 
-        if (hasCameraPermission()) {
-            previewView.post(this::startCamera);
-        } else {
-            cameraPermissionLauncher.launch(Manifest.permission.CAMERA);
-        }
-
         return view;
+    }
+
+    private void updateGlobalStepCount(int steps, float distanceM, float calories, float speedKmh) {
+        if (GlobalContext.isActive(this)) {
+            globalStepCountText.setText(String.valueOf(steps));
+            hudDistanceText.setText(String.format("%.2f km", distanceM / 1000f));
+            hudCaloriesText.setText(String.format("%.0f kcal", calories));
+            hudPaceText.setText(String.format("%.1f km/h", speedKmh));
+        }
+    }
+
+    private static class GlobalContext {
+        static boolean isActive(Fragment f) {
+            return f.isAdded() && f.getActivity() != null;
+        }
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if (sensorManager != null && stepSensor != null) {
-            sensorManager.registerListener(this, stepSensor, SensorManager.SENSOR_DELAY_FASTEST);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            requireContext().registerReceiver(stepReceiver, new IntentFilter("STEPS_UPDATED"), Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            requireContext().registerReceiver(stepReceiver, new IntentFilter("STEPS_UPDATED"));
         }
+        int steps = gamificationManager.getDailySteps();
+        updateGlobalStepCount(steps, steps * 0.72f, steps * 0.040f, 0f);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        if (sensorManager != null) {
-            sensorManager.unregisterListener(this);
-        }
+        requireContext().unregisterReceiver(stepReceiver);
     }
-
-    @Override
-    public void onSensorChanged(SensorEvent event) {
-        if (event.sensor.getType() == Sensor.TYPE_STEP_DETECTOR) {
-            currentStepsWalked++;
-            stepCountText.setText(String.valueOf(currentStepsWalked));
-        } else if (event.sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION && stepEngine != null) {
-            stepEngine.onSensorChanged(event);
-        }
-    }
-
-    @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {}
 
     private boolean hasCameraPermission() {
         return ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
@@ -242,6 +273,8 @@ public class TrackFragment extends Fragment implements SensorEventListener {
             Log.e(TAG, "Unable to bind camera", exception);
         }
     }
+
+
 
     private void analyzeFrame(ImageProxy imageProxy) {
         if (isProcessingFrame) {

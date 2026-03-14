@@ -112,4 +112,32 @@ public class GamificationManager {
         if (xp < 1000) return "🐆 Leopard";
         return "🦁 Lion";
     }
+
+    public int getXPForNextLevel() {
+        int xp = getTotalXP();
+        if (xp < 100) return 100;
+        if (xp < 300) return 300;
+        if (xp < 600) return 600;
+        if (xp < 1000) return 1000;
+        return xp; // Maxed out
+    }
+
+    public int getBaseXPForCurrentLevel() {
+        int xp = getTotalXP();
+        if (xp < 100) return 0;
+        if (xp < 300) return 100;
+        if (xp < 600) return 300;
+        if (xp < 1000) return 600;
+        return 1000;
+    }
+
+    public int getDailySteps() {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        String today = GamificationDatabaseHelper.getTodayDateString();
+        Cursor c = db.rawQuery("SELECT " + GamificationDatabaseHelper.COLUMN_STEPS + " FROM " + GamificationDatabaseHelper.TABLE_DAILY_STATS + " WHERE date = ?", new String[]{today});
+        int steps = 0;
+        if (c.moveToFirst()) steps = c.getInt(0);
+        c.close();
+        return steps;
+    }
 }

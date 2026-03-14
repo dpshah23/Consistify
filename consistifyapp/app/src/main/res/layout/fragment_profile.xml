@@ -1,101 +1,137 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#121212"
-    android:gravity="top|center_horizontal"
-    android:padding="24dp"
-    android:orientation="vertical">
-
-    <ImageView
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_marginTop="16dp"
-        android:src="@drawable/ic_profile"
-        android:background="#333333"
-        android:padding="16dp"/>
-
-    <TextView
-        android:id="@+id/tv_username"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Consistify Beast"
-        android:textColor="#FFFFFF"
-        android:textSize="24sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/tv_profile_level"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Level: ?"
-        android:textColor="#00E676"
-        android:textSize="20sp"
-        android:textStyle="bold" />
+    android:background="@drawable/bg_gradient_dark"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="#1E1E1E"
-        android:padding="16dp"
-        android:layout_marginTop="32dp"
-        android:weightSum="2">
+        android:gravity="top|center_horizontal"
+        android:padding="24dp"
+        android:orientation="vertical">
+
+        <!-- Glowing Avatar Area -->
+        <FrameLayout
+            android:layout_width="140dp"
+            android:layout_height="140dp"
+            android:layout_marginTop="24dp"
+            android:background="@drawable/bg_icon_circle">
+            
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_profile"
+                android:padding="32dp"
+                android:tint="#00E676"/>
+                
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tv_username"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Consistify Beast"
+            android:textColor="#FFFFFF"
+            android:textSize="28sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_profile_level"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Level: ?"
+            android:textColor="#00E676"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <!-- Stats Glass Card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="@drawable/bg_glass_card"
+            android:padding="20dp"
+            android:layout_marginTop="36dp"
+            android:weightSum="2">
+            
+            <!-- Streak -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Current Streak"
+                    android:textColor="#A0AAB2"
+                    android:textSize="14sp" />
+                <TextView
+                    android:id="@+id/tv_streak"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="1 Days 🔥"
+                    android:textColor="#FFCA28"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Divider -->
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:background="#33FFFFFF" />
+
+            <!-- Consistency Score -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Consistency"
+                    android:textColor="#A0AAB2"
+                    android:textSize="14sp" />
+                <TextView
+                    android:id="@+id/tv_consistency_score"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="72"
+                    android:textColor="#64FFDA"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
         
-        <LinearLayout
-            android:layout_width="0dp"
+        <TextView
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Current Streak"
-                android:textColor="#AAAAAA"
-                android:textSize="14sp" />
-            <TextView
-                android:id="@+id/tv_streak"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="1 Days 🔥"
-                android:textColor="#FF9800"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-        </LinearLayout>
+            android:layout_marginTop="48dp"
+            android:text="Recent Achievements"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+            
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="No achievements unlocked yet. Keep grinding!"
+            android:textColor="#A0AAB2"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:padding="24dp"
+            android:background="@drawable/bg_input_field" />
 
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Consistency Score"
-                android:textColor="#AAAAAA"
-                android:textSize="14sp" />
-            <TextView
-                android:id="@+id/tv_consistency_score"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="72"
-                android:textColor="#BB86FC"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-        </LinearLayout>
     </LinearLayout>
-    
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:text="Recent Achievements"
-        android:textColor="#FFFFFF"
-        android:textSize="18sp"
-        android:textStyle="bold" />
-
-</LinearLayout>
+</ScrollView>
