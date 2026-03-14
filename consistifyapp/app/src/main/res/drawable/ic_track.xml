@@ -1,0 +1,5 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <!-- Fitness / Activity Icon -->
+    <path android:fillColor="#FFFFFF" android:pathData="M13.5,5.5 A1.5,1.5 0 0,0 12,7 A1.5,1.5 0 0,0 13.5,8.5 A1.5,1.5 0 0,0 15,7 A1.5,1.5 0 0,0 13.5,5.5 M9.8,8.9L7,23H9.1L10.5,15L12.55,16.89C13.25,18.78 15.06,20.1 17.2,20.2V18.1C15.93,18 14.86,17.23 14.39,16.1L13,13.75C12.78,13.34 12.35,13.08 11.89,13.05L11.85,13.05C11.5,13.05 11.16,13.16 10.87,13.35L14,8L15.31,8.6L16.27,6.8L12.5,5C12.3,4.91 12.06,4.88 11.84,4.94L7.54,6.07C7.2,6.17 6.94,6.47 6.85,6.82L5.47,13.43L7.43,13.84L8.5,8.7L9.8,8.9Z" />
+</vector>

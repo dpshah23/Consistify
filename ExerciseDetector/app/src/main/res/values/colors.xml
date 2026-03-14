@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="bg_app">#07111F</color>
+    <color name="bg_surface">#111C2D</color>
+    <color name="bg_surface_alt">#152337</color>
+    <color name="bg_accent">#0F766E</color>
+    <color name="bg_accent_strong">#14B8A6</color>
+    <color name="bg_warning">#9A3412</color>
+    <color name="text_primary">#F8FAFC</color>
+    <color name="text_secondary">#94A3B8</color>
+    <color name="text_muted">#64748B</color>
+    <color name="chip_active">#123D38</color>
+    <color name="chip_sync">#1E3A5F</color>
+</resources>
