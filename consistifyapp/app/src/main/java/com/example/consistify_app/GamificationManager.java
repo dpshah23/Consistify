@@ -117,6 +117,14 @@ public class GamificationManager {
         return xp;
     }
 
+    public void setTotalXPAndCoins(int xp, int fitCoins) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        db.execSQL("UPDATE " + GamificationDatabaseHelper.TABLE_USER_PROFILE + 
+                " SET total_xp = " + xp + ", " +
+                "total_fitcoins = " + fitCoins + 
+                " WHERE id = 1");
+    }
+
     public int getFitCoins() {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         Cursor c = db.rawQuery("SELECT total_fitcoins FROM user_profile WHERE id=1", null);

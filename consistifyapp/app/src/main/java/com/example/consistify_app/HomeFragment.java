@@ -135,6 +135,33 @@ public class HomeFragment extends Fragment {
     private void updateGamificationUI() {
         if (!isAdded() || getContext() == null) return;
         
+        String userId = authManager.getUserId();
+        if (userId != null) {
+            ApiClient.getApi().getGamificationStatus(userId).enqueue(new Callback<JsonObject>() {
+                @Override
+                public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                    if (isAdded() && getContext() != null && response.isSuccessful() && response.body() != null) {
+                        JsonObject body = response.body();
+                        if (body.has("xp") && !body.get("xp").isJsonNull() && body.has("fitcoins") && !body.get("fitcoins").isJsonNull()) {
+                            gamificationManager.setTotalXPAndCoins(body.get("xp").getAsInt(), body.get("fitcoins").getAsInt());
+                        }
+                    }
+                    renderGamificationStats();
+                }
+
+                @Override
+                public void onFailure(Call<JsonObject> call, Throwable t) {
+                    if (isAdded() && getContext() != null) {
+                        renderGamificationStats();
+                    }
+                }
+            });
+        } else {
+            renderGamificationStats();
+        }
+    }
+
+    private void renderGamificationStats() {
         tvLevel.setText("Level: " + gamificationManager.getCurrentLevel());
         tvXp.setText(gamificationManager.getTotalXP() + " XP (Total)");
 

@@ -42,30 +42,86 @@ public class ProfileFragment extends Fragment {
 
         // Fetch dynamic profile
         TextView tvUsername = view.findViewById(R.id.tv_username);
+        TextView tvConsistency = view.findViewById(R.id.tv_consistency_score);
+        TextView tvRecentAchievements = view.findViewById(R.id.tv_recent_achievements);
+        
         AuthManager authManager = new AuthManager(requireContext());
         String userId = authManager.getUserId();
         
         if (userId != null) {
-            ApiClient.getApi().getProfile(userId).enqueue(new Callback<JsonObject>() {
+            int dailySquats = manager.getDailySquats();
+            int dailyPushups = manager.getDailyPushups();
+            int dailySteps = manager.getDailySteps();
+
+            ApiClient.getApi().syncGamification(userId, dailySquats, dailyPushups, dailySteps).enqueue(new Callback<JsonObject>() {
                 @Override
-                public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                    if (isAdded() && getContext() != null && response.isSuccessful() && response.body() != null) {
-                        if (response.body().has("user")) {
-                            JsonObject user = response.body().getAsJsonObject("user");
-                            if (user.has("username") && !user.get("username").isJsonNull()) {
-                                tvUsername.setText(user.get("username").getAsString());
-                            }
-                        }
-                    }
+                public void onResponse(Call<JsonObject> call, Response<JsonObject> responseSync) {
+                    fetchProfileData(userId, tvUsername, tvLevel, tvStreak, tvConsistency, tvRecentAchievements);
                 }
 
                 @Override
                 public void onFailure(Call<JsonObject> call, Throwable t) {
-                    // Fall back to static text if needed
+                    fetchProfileData(userId, tvUsername, tvLevel, tvStreak, tvConsistency, tvRecentAchievements);
                 }
             });
         }
 
         return view;
+    }
+
+    private void fetchProfileData(String userId, TextView tvUsername, TextView tvLevel, TextView tvStreak, TextView tvConsistency, TextView tvRecentAchievements) {
+        // 1. Fetch Username Profiling
+        ApiClient.getApi().getProfile(userId).enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                if (isAdded() && getContext() != null && response.isSuccessful() && response.body() != null) {
+                    if (response.body().has("user")) {
+                        JsonObject user = response.body().getAsJsonObject("user");
+                        if (user.has("username") && !user.get("username").isJsonNull()) {
+                            tvUsername.setText(user.get("username").getAsString());
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {}
+        });
+
+        // 2. Fetch Gamification Stats (Streak, Level, Consistency, Achievements)
+        ApiClient.getApi().getGamificationStatus(userId).enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                if (isAdded() && getContext() != null && response.isSuccessful() && response.body() != null) {
+                    JsonObject body = response.body();
+                    if (body.has("level") && !body.get("level").isJsonNull()) {
+                        tvLevel.setText("Level: " + body.get("level").getAsString());
+                    }
+                    if (body.has("current_streak") && !body.get("current_streak").isJsonNull()) {
+                        tvStreak.setText(body.get("current_streak").getAsInt() + " Days \uD83D\uDD25");
+                    }
+                    if (body.has("consistency_score") && !body.get("consistency_score").isJsonNull()) {
+                        tvConsistency.setText(String.valueOf(body.get("consistency_score").getAsInt()));
+                    }
+                    if (body.has("recent_achievements") && !body.get("recent_achievements").isJsonNull()) {
+                        com.google.gson.JsonArray achievementsJson = body.getAsJsonArray("recent_achievements");
+                        if (achievementsJson != null && achievementsJson.size() > 0) {
+                            java.util.List<String> achList = new java.util.ArrayList<>();
+                            for(int i = 0; i < achievementsJson.size(); i++) {
+                                achList.add("• " + achievementsJson.get(i).getAsString());
+                            }
+                            tvRecentAchievements.setText(android.text.TextUtils.join("\n\n", achList));
+                            tvRecentAchievements.setGravity(android.view.Gravity.START);
+                        } else {
+                            tvRecentAchievements.setText("No achievements unlocked yet. Keep grinding!");
+                            tvRecentAchievements.setGravity(android.view.Gravity.CENTER);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {}
+        });
     }
 }

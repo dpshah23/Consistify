@@ -1,15 +1,18 @@
 package com.example.consistify_app;
 
+import android.app.AlertDialog;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.content.Intent;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -44,6 +47,12 @@ public class LeaderboardFragment extends Fragment {
         tabDaily.setOnClickListener(v -> switchTab("daily"));
         tabWeekly.setOnClickListener(v -> switchTab("weekly"));
         tabAllTime.setOnClickListener(v -> switchTab("all_time"));
+
+        Button btnChallenges = view.findViewById(R.id.btn_view_challenges);
+        btnChallenges.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), ChallengesActivity.class);
+            startActivity(intent);
+        });
 
         // Load daily by default
         loadLeaderboard("daily");
@@ -87,6 +96,32 @@ public class LeaderboardFragment extends Fragment {
         leaderboardContainer.removeAllViews();
         progressLoader.setVisibility(View.VISIBLE);
 
+        AuthManager authManager = new AuthManager(requireContext());
+        String userId = authManager.getUserId();
+        
+        if (userId != null) {
+            GamificationManager manager = new GamificationManager(requireContext());
+            int dailySquats = manager.getDailySquats();
+            int dailyPushups = manager.getDailyPushups();
+            int dailySteps = manager.getDailySteps();
+
+            ApiClient.getApi().syncGamification(userId, dailySquats, dailyPushups, dailySteps).enqueue(new Callback<JsonObject>() {
+                @Override
+                public void onResponse(Call<JsonObject> call, Response<JsonObject> responseSync) {
+                    fetchLeaderboardData(timeframe);
+                }
+
+                @Override
+                public void onFailure(Call<JsonObject> call, Throwable t) {
+                    fetchLeaderboardData(timeframe);
+                }
+            });
+        } else {
+            fetchLeaderboardData(timeframe);
+        }
+    }
+
+    private void fetchLeaderboardData(String timeframe) {
         ApiClient.getApi().getLeaderboard(timeframe).enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
@@ -101,8 +136,9 @@ public class LeaderboardFragment extends Fragment {
                             String username = userObj.get("username").getAsString();
                             int xp = userObj.get("xp").getAsInt();
                             int rank = userObj.get("rank").getAsInt();
+                            String targetUserId = userObj.has("user_id") ? userObj.get("user_id").getAsString() : null;
                             
-                            addLeaderboardRow(rank, username, xp);
+                            addLeaderboardRow(rank, username, xp, targetUserId);
                         }
                     } else {
                         showEmptyState();
@@ -123,7 +159,7 @@ public class LeaderboardFragment extends Fragment {
         });
     }
 
-    private void addLeaderboardRow(int rank, String username, int xp) {
+    private void addLeaderboardRow(int rank, String username, int xp, String targetUserId) {
         LinearLayout row = new LinearLayout(getContext());
         row.setLayoutParams(new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -145,13 +181,17 @@ public class LeaderboardFragment extends Fragment {
         tvRank.setTypeface(null, Typeface.BOLD);
         tvRank.setPadding(0, 0, 32, 0);
 
-        // Username
+        // Username container
+        LinearLayout userContainer = new LinearLayout(getContext());
+        userContainer.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
+        userContainer.setLayoutParams(nameParams);
+
         TextView tvUsername = new TextView(getContext());
         tvUsername.setText(username);
         tvUsername.setTextColor(Color.parseColor("#FFFFFF"));
         tvUsername.setTextSize(16f);
-        LinearLayout.LayoutParams nameParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
-        tvUsername.setLayoutParams(nameParams);
+        userContainer.addView(tvUsername);
 
         // XP
         TextView tvXp = new TextView(getContext());
@@ -161,10 +201,66 @@ public class LeaderboardFragment extends Fragment {
         tvXp.setTypeface(null, Typeface.BOLD);
 
         row.addView(tvRank);
-        row.addView(tvUsername);
+        row.addView(userContainer);
         row.addView(tvXp);
 
+        if (targetUserId != null) {
+            AuthManager authManager = new AuthManager(requireContext());
+            String loggedInUserId = authManager.getUserId();
+            if (!targetUserId.equals(loggedInUserId)) {
+                TextView tvHint = new TextView(getContext());
+                tvHint.setText("Tap to challenge ⚔️");
+                tvHint.setTextColor(Color.parseColor("#BB86FC"));
+                tvHint.setTextSize(12f);
+                userContainer.addView(tvHint);
+                
+                row.setOnClickListener(v -> showChallengeDialog(targetUserId, username));
+            }
+        }
+
         leaderboardContainer.addView(row);
+    }
+    
+    private void showChallengeDialog(String targetUserId, String targetUsername) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Challenge " + targetUsername + " (3-min blitz)");
+        
+        String[] options = {"Squats", "Pushups"};
+        builder.setItems(options, (dialog, which) -> {
+            String exerciseType = options[which].toLowerCase();
+            sendChallengeRequest(targetUserId, exerciseType);
+        });
+        
+        builder.setNegativeButton("Cancel", null);
+        builder.show();
+    }
+    
+    private void sendChallengeRequest(String targetUserId, String exerciseType) {
+        AuthManager authManager = new AuthManager(requireContext());
+        String currentUserId = authManager.getUserId();
+        
+        if (currentUserId == null) return;
+        
+        progressLoader.setVisibility(View.VISIBLE);
+        ApiClient.getApi().sendChallenge(currentUserId, targetUserId, exerciseType).enqueue(new Callback<JsonObject>() {
+            @Override
+            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                if (!isAdded() || getContext() == null) return;
+                progressLoader.setVisibility(View.GONE);
+                if (response.isSuccessful()) {
+                    Toast.makeText(getContext(), "Challenge sent successfully!", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getContext(), "Failed to send challenge", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<JsonObject> call, Throwable t) {
+                if (!isAdded() || getContext() == null) return;
+                progressLoader.setVisibility(View.GONE);
+                Toast.makeText(getContext(), "Network error", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
     
     private void showEmptyState() {

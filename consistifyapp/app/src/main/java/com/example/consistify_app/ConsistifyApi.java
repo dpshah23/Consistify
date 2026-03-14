@@ -28,6 +28,9 @@ public interface ConsistifyApi {
     @GET("accounts/profile/{user_id}/")
     Call<JsonObject> getProfile(@Path("user_id") String userId);
 
+    @GET("api/gamification/status/")
+    Call<JsonObject> getGamificationStatus(@Query("user_id") String userId);
+
     @GET("social/feed/{page}/")
     Call<JsonObject> getFeed(@Path("page") int page, @Query("user_id") String userId);
 
@@ -57,4 +60,37 @@ public interface ConsistifyApi {
 
     @GET("api/analytics/leaderboard/")
     Call<JsonObject> getLeaderboard(@Query("timeframe") String timeframe);
+
+    @FormUrlEncoded
+    @POST("api/gamification/challenge/send/")
+    Call<JsonObject> sendChallenge(
+            @Field("challenger_id") String challengerId,
+            @Field("challenged_id") String challengedId,
+            @Field("exercise_type") String exerciseType
+    );
+
+    @FormUrlEncoded
+    @POST("api/gamification/challenge/respond/")
+    Call<JsonObject> respondChallenge(
+            @Field("challenge_id") String challengeId,
+            @Field("action") String action
+    );
+
+    @FormUrlEncoded
+    @POST("api/gamification/challenge/submit-score/")
+    Call<JsonObject> submitChallengeScore(
+            @Field("challenge_id") String challengeId,
+            @Field("user_id") String userId,
+            @Field("score") int score
+    );
+
+    @GET("api/gamification/challenges/")
+    Call<JsonObject> getUserChallenges(@Query("user_id") String userId);
+
+    @GET("api/gamification/notifications/")
+    Call<JsonObject> getNotifications(@Query("user_id") String userId);
+
+    @FormUrlEncoded
+    @POST("api/gamification/notifications/mark-read/")
+    Call<JsonObject> markNotificationRead(@Field("notification_id") String notificationId);
 }
