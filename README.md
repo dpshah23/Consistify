@@ -54,7 +54,7 @@ This aligns with behavioral psychology research on habit formation. **Consistenc
 
 ### System Architecture Diagram
 
-![System Architecture](../architecture.jpg)
+<img src="architecture.jpg" width="400">
 
 
 
