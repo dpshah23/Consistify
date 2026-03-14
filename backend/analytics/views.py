@@ -1,3 +1,136 @@
-from django.shortcuts import render
+import datetime
+from django.http import JsonResponse
+from django.utils import timezone
+from accounts.models import UserCustom
+from activity.models import DailyActivity
+from gamification.models import UserStats, Streak
+from .models import Leaderboard
 
-# Create your views here.
+def get_dashboard_summary(request):
+    """
+    Unified API for Android home page dashboard.
+    Returns:
+    - Today's activity
+    - Gamification stats (XP, level, FitCoins, consistency)
+    - Current streak
+    """
+    if request.method == "GET":
+        user_id = request.GET.get("user_id")
+        
+        if not user_id:
+            return JsonResponse({"error": "user_id is required"}, status=400)
+            
+        try:
+            user = UserCustom.objects.get(id=user_id)
+            today = timezone.now().date()
+            
+            # 1. Today's Activity
+            today_act = DailyActivity.objects.filter(user=user, date=today).first()
+            activity_data = {
+                "squats": today_act.squats if today_act else 0,
+                "pushups": today_act.pushups if today_act else 0,
+                "steps": today_act.steps if today_act else 0,
+            }
+            
+            # 2. Gamification Stats (Level, XP, Coins, Consistency)
+            # Create if it doesn't exist
+            stats, _ = UserStats.objects.get_or_create(user=user)
+            stats_data = {
+                "xp": stats.xp,
+                "fitcoins": stats.fitcoins,
+                "level": stats.level,
+                "consistency_score": stats.consistency_score
+            }
+            
+            # 3. Streak
+            streak, _ = Streak.objects.get_or_create(
+                user=user, 
+                defaults={"last_active_date": today - datetime.timedelta(days=1)} # fallback to yesterday
+            )
+            streak_data = {
+                "current_streak": streak.current_streak,
+                "longest_streak": streak.longest_streak,
+                "last_active_date": streak.last_active_date
+            }
+            
+            # Next level threshold logic (Tortoise -> Wolf -> Eagle -> Leopard -> Lion)
+            level_thresholds = {
+                "Tortoise": 100,
+                "Wolf": 300,
+                "Eagle": 600,
+                "Leopard": 1000,
+                "Lion": 999999
+            }
+            next_xp = level_thresholds.get(stats.level, 100)
+            progress_percent = min(100, int((stats.xp / next_xp) * 100)) if stats.xp < next_xp else 100
+
+            return JsonResponse({
+                "activity": activity_data,
+                "stats": stats_data,
+                "streak": streak_data,
+                "next_level_xp": next_xp,
+                "progress_percent": progress_percent
+            })
+            
+        except UserCustom.DoesNotExist:
+            return JsonResponse({"error": "User not found"}, status=404)
+
+
+def get_weekly_chart_data(request):
+    """
+    Returns XP or Activity data for the past 7 days 
+    for Android Bar Charts/Line Charts.
+    """
+    if request.method == "GET":
+        user_id = request.GET.get("user_id")
+        
+        if not user_id:
+            return JsonResponse({"error": "user_id is required"}, status=400)
+            
+        try:
+            user = UserCustom.objects.get(id=user_id)
+            today = timezone.now().date()
+            last_7_days = [today - datetime.timedelta(days=i) for i in range(6, -1, -1)]
+            
+            activities = DailyActivity.objects.filter(user=user, date__in=last_7_days)
+            activity_map = {act.date: act for act in activities}
+            
+            chart_data = []
+            for d in last_7_days:
+                act = activity_map.get(d)
+                chart_data.append({
+                    "date": d.strftime("%Y-%m-%d"),
+                    "day_name": d.strftime("%a"), # e.g., 'Mon'
+                    "squats": act.squats if act else 0,
+                    "pushups": act.pushups if act else 0,
+                    "steps": act.steps if act else 0,
+                    "completed": bool(act and (act.squats > 0 or act.pushups > 0 or act.steps > 0))
+                })
+                
+            return JsonResponse({"weekly_data": chart_data})
+            
+        except UserCustom.DoesNotExist:
+            return JsonResponse({"error": "User not found"}, status=404)
+
+
+def get_leaderboard(request):
+    """
+    Returns top users sorted by XP or Consistency Score.
+    """
+    if request.method == "GET":
+        # Get top 10 from UserStats based on XP
+        top_users = UserStats.objects.select_related('user').order_by('-xp')[:10]
+        
+        leaderboard_data = []
+        for index, stats in enumerate(top_users):
+            leaderboard_data.append({
+                "rank": index + 1,
+                "username": stats.user.username,
+                "xp": stats.xp,
+                "level": stats.level,
+                "consistency": stats.consistency_score,
+                "user_id": stats.user.id
+            })
+            
+        # Optional: update Leaderboard model if needed, but dynamic querying is better for realtime Leaderboard
+        return JsonResponse({"leaderboard": leaderboard_data})

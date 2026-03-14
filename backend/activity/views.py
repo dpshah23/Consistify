@@ -1,9 +1,9 @@
 from django.http import JsonResponse
 from django.shortcuts import render
+from datetime import date
 from .models import DailyActivity
 from accounts.models import UserCustom
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-
 # Create your views here.
 
 def log_activity(request):
@@ -56,4 +56,31 @@ def today(request):
         except UserCustom.DoesNotExist:
             return JsonResponse({"error":"User not found"}, status=404)
         
-        
+def activity_history(request, page=1):
+    if request.method == "GET":
+        user_id = request.GET.get("user_id")
+        try:
+            user = UserCustom.objects.get(id=user_id)
+            activities = DailyActivity.objects.filter(user=user).order_by('-date')
+            paginator = Paginator(activities, 10) # Show 10 per page
+            
+            try:
+                activities_page = paginator.page(page)
+            except PageNotAnInteger:
+                activities_page = paginator.page(1)
+            except EmptyPage:
+                activities_page = paginator.page(paginator.num_pages)
+                
+            data = [
+                {"date": act.date, "squats": act.squats, "pushups": act.pushups, "steps": act.steps}
+                for act in activities_page
+            ]
+            
+            return JsonResponse({
+                "activities": data,
+                "current_page": activities_page.number,
+                "total_pages": paginator.num_pages
+            })
+            
+        except UserCustom.DoesNotExist:
+            return JsonResponse({"error": "User not found"}, status=404)

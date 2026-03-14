@@ -1,7 +1,8 @@
 from django.urls import path
-from .views import leaderboard, user_statistics
+from . import views
 
 urlpatterns = [
-    path("leaderboard/", leaderboard,name="leaderboard"),
-    path("user-stats/", user_statistics,name="user_statistics"),
+    path('dashboard/', views.get_dashboard_summary, name='dashboard_summary'),
+    path('weekly/', views.get_weekly_chart_data, name='weekly_chart_data'),
+    path('leaderboard/', views.get_leaderboard, name='leaderboard'),
 ]
