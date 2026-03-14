@@ -169,8 +169,8 @@ import java.util.concurrent.Executors;
         });
 
         endSessionButton.setOnClickListener(v -> {
-            int squats = repCounter.analyze(null, SystemClock.elapsedRealtime()).squatCount;
-            int pushups = repCounter.analyze(null, SystemClock.elapsedRealtime()).pushupCount;
+            int squats = repCounter.getSquatCount();
+            int pushups = repCounter.getPushupCount();
             
             gamificationManager.addSquats(squats);
             gamificationManager.addPushups(pushups);

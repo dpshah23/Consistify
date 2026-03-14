@@ -39,6 +39,9 @@ public final class ExerciseRepCounter {
     private int squatCount;
     private int pushupCount;
 
+    public int getSquatCount() { return squatCount; }
+    public int getPushupCount() { return pushupCount; }
+
     private ExerciseType activeExercise = ExerciseType.NONE;
     private DetectionMode detectionMode = DetectionMode.AUTO;
     private int squatCandidateFrames;

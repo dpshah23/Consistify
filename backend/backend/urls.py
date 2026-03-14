@@ -24,4 +24,5 @@ urlpatterns = [
     path('api/gamification/', include('gamification.urls')),
     # path('api/reward/', include('reward.urls')),
     path('accounts/',include('accounts.urls')),
+    path('social/', include('social.urls')),
 ]

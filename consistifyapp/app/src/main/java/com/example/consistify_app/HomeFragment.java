@@ -226,7 +226,8 @@ public class HomeFragment extends Fragment {
     }
 
     private void loadFeed() {
-        ApiClient.getApi().getFeed(1).enqueue(new Callback<JsonObject>() {
+        String userId = authManager.getUserId();
+        ApiClient.getApi().getFeed(1, userId).enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                 if (!isAdded() || getContext() == null) return;
@@ -239,10 +240,13 @@ public class HomeFragment extends Fragment {
                         // We will build views for each.
                         for (int i = 0; i < posts.size(); i++) {
                             JsonObject postObj = posts.get(i).getAsJsonObject();
+                            int postId = postObj.has("id") ? postObj.get("id").getAsInt() : -1;
                             String author = postObj.has("author_username") ? postObj.get("author_username").getAsString() : "User";
                             String content = postObj.has("content") ? postObj.get("content").getAsString() : "";
+                            int likesCount = postObj.has("likes_count") ? postObj.get("likes_count").getAsInt() : 0;
+                            boolean isLiked = postObj.has("is_liked") && postObj.get("is_liked").getAsBoolean();
                             
-                            addPostToFeed(author, content);
+                            addPostToFeed(postId, author, content, likesCount, isLiked);
                         }
                     } else {
                         tvLoading.setText("No posts found yet. Be the first to share!");
@@ -263,12 +267,12 @@ public class HomeFragment extends Fragment {
 
     private void renderMockFeed() {
         postsContainer.removeAllViews();
-        addPostToFeed("Beast Master", "Just crushed 100 pushups today for the Wolf rank!");
-        addPostToFeed("Iron Liger", "Consistency is key. 5 day streak.");
-        addPostToFeed("Alpha Runner", "Finished a 5km sprint. Let's go!");
+        addPostToFeed(-1, "Beast Master", "Just crushed 100 pushups today for the Wolf rank!", 12, true);
+        addPostToFeed(-1, "Iron Liger", "Consistency is key. 5 day streak.", 5, false);
+        addPostToFeed(-1, "Alpha Runner", "Finished a 5km sprint. Let's go!", 3, false);
     }
 
-    private void addPostToFeed(String author, String content) {
+    private void addPostToFeed(int postId, String author, String content, int likesCount, boolean isLiked) {
         Context context = getContext();
         if (context == null) return;
 
@@ -291,10 +295,46 @@ public class HomeFragment extends Fragment {
         tvContent.setText(content);
         tvContent.setTextColor(Color.WHITE);
         tvContent.setTextSize(14f);
-        tvContent.setPadding(0, 16, 0, 0);
+        tvContent.setPadding(0, 16, 0, 16);
+
+        LinearLayout likeRow = new LinearLayout(context);
+        likeRow.setOrientation(LinearLayout.HORIZONTAL);
+        likeRow.setGravity(android.view.Gravity.CENTER_VERTICAL);
+        
+        TextView tvLike = new TextView(context);
+        tvLike.setText((isLiked ? "❤️ " : "🤍 ") + likesCount);
+        tvLike.setTextColor(isLiked ? Color.parseColor("#FF5252") : Color.parseColor("#AAAAAA"));
+        tvLike.setTextSize(14f);
+        tvLike.setPadding(0, 8, 0, 0);
+
+        if (postId != -1) {
+            tvLike.setOnClickListener(v -> {
+                String uId = authManager.getUserId();
+                ApiClient.getApi().likePost(uId, postId).enqueue(new Callback<JsonObject>() {
+                    @Override
+                    public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                        if (response.isSuccessful() && response.body() != null) {
+                            JsonObject body = response.body();
+                            if (body.has("liked") && body.has("likes_count")) {
+                                boolean nowLiked = body.get("liked").getAsBoolean();
+                                int count = body.get("likes_count").getAsInt();
+                                tvLike.setText((nowLiked ? "❤️ " : "🤍 ") + count);
+                                tvLike.setTextColor(nowLiked ? Color.parseColor("#FF5252") : Color.parseColor("#AAAAAA"));
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<JsonObject> call, Throwable t) {}
+                });
+            });
+        }
+
+        likeRow.addView(tvLike);
 
         card.addView(tvAuthor);
         card.addView(tvContent);
+        card.addView(likeRow);
 
         postsContainer.addView(card, 0); // Add directly at the top
     }

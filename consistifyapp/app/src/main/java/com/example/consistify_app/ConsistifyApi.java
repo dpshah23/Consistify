@@ -26,7 +26,14 @@ public interface ConsistifyApi {
     );
 
     @GET("social/feed/{page}/")
-    Call<JsonObject> getFeed(@Path("page") int page);
+    Call<JsonObject> getFeed(@Path("page") int page, @Query("user_id") String userId);
+
+    @FormUrlEncoded
+    @POST("social/like/")
+    Call<JsonObject> likePost(
+            @Field("user_id") String userId,
+            @Field("post_id") int postId
+    );
 
     @FormUrlEncoded
     @POST("social/create/")

@@ -1,33 +1,23 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+
+    <!-- Base application theme -->
     <style name="Base.Theme.Consistifyapp" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
-    <resources xmlns:tools="http://schemas.android.com/tools">
 
-        <!-- Base application theme -->
-        <style name="Base.Theme.Consistifyapp" parent="Theme.Material3.DayNight.NoActionBar">
-            <!-- Customize theme -->
-        </style>
-
-        <!-- Main App Theme -->
-        <style name="Theme.Consistifyapp" parent="Base.Theme.Consistifyapp" />
-
-        <!-- Splash Screen Theme -->
-        <style name="Theme.Consistifyapp.Splash" parent="Theme.SplashScreen">
-
-            <!-- Splash background -->
-            <item name="windowSplashScreenBackground">@color/splash_color</item>
-
-            <!-- Splash icon -->
-            <item name="windowSplashScreenAnimatedIcon">@drawable/app_logo</item>
-
-            <!-- Theme after splash -->
-            <item name="postSplashScreenTheme">@style/Theme.Consistifyapp</item>
-
-        </style>
-
-    </resources>
+    <!-- Main App Theme -->
     <style name="Theme.Consistifyapp" parent="Base.Theme.Consistifyapp" />
+
+    <!-- Splash Screen Theme -->
+    <style name="Theme.Consistifyapp.Splash" parent="Theme.SplashScreen">
+        <!-- Splash background -->
+        <item name="windowSplashScreenBackground">@color/splash_color</item>
+        
+        <!-- Splash icon -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        
+        <!-- Theme after splash -->
+        <item name="postSplashScreenTheme">@style/Theme.Consistifyapp</item>
+    </style>
+
 </resources>
