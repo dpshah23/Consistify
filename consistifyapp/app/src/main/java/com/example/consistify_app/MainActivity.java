@@ -76,7 +76,14 @@ public class MainActivity extends AppCompatActivity {
         // Start Step Tracking Service
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
             String[] permissions;
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                // Android 14+ (API 34)
+                permissions = new String[]{
+                        android.Manifest.permission.ACTIVITY_RECOGNITION,
+                        android.Manifest.permission.POST_NOTIFICATIONS,
+                        android.Manifest.permission.BODY_SENSORS
+                };
+            } else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
                 permissions = new String[]{android.Manifest.permission.ACTIVITY_RECOGNITION, android.Manifest.permission.POST_NOTIFICATIONS};
             } else {
                 permissions = new String[]{android.Manifest.permission.ACTIVITY_RECOGNITION};
