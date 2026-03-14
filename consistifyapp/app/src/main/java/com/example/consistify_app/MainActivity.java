@@ -47,6 +47,8 @@ public class MainActivity extends AppCompatActivity {
                 selectedFragment = new TrackFragment();
             } else if (itemId == R.id.nav_rewards) {
                 selectedFragment = new RewardsFragment();
+            } else if (itemId == R.id.nav_leaderboard) {
+                selectedFragment = new LeaderboardFragment();
             } else if (itemId == R.id.nav_profile) {
                 selectedFragment = new ProfileFragment();
             }

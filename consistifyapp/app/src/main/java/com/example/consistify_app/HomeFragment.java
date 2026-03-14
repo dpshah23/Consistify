@@ -31,11 +31,30 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import android.content.BroadcastReceiver;
+import android.content.Intent;
+import android.content.IntentFilter;
+
 public class HomeFragment extends Fragment {
 
     private LinearLayout postsContainer;
     private TextView tvLoading;
     private AuthManager authManager;
+    private GamificationManager gamificationManager;
+
+    private TextView tvLevel;
+    private TextView tvXp;
+    private ProgressBar pbLevel;
+    private TextView tvXpRemaining;
+
+    private final BroadcastReceiver statsReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if ("STEPS_UPDATED".equals(intent.getAction()) || "STATS_UPDATED".equals(intent.getAction())) {
+                updateGamificationUI();
+            }
+        }
+    };
 
     @Nullable
     @Override
@@ -43,37 +62,14 @@ public class HomeFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
         authManager = new AuthManager(requireContext());
+        gamificationManager = new GamificationManager(requireContext());
 
-        GamificationManager manager = new GamificationManager(requireContext());
-        TextView tvLevel = view.findViewById(R.id.tv_home_level);
-        TextView tvXp = view.findViewById(R.id.tv_home_xp);
+        tvLevel = view.findViewById(R.id.tv_home_level);
+        tvXp = view.findViewById(R.id.tv_home_xp);
+        pbLevel = view.findViewById(R.id.pb_level);
+        tvXpRemaining = view.findViewById(R.id.tv_xp_remaining);
         
-        tvLevel.setText("Level: " + manager.getCurrentLevel());
-        tvXp.setText(manager.getTotalXP() + " XP (Total)");
-
-        ProgressBar pbLevel = view.findViewById(R.id.pb_level);
-        TextView tvXpRemaining = view.findViewById(R.id.tv_xp_remaining);
-        
-        int currentXp = manager.getTotalXP();
-        int baseXP = manager.getBaseXPForCurrentLevel();
-        int nextXp = manager.getXPForNextLevel();
-        
-        if (currentXp >= 1000) {
-            pbLevel.setMax(100);
-            pbLevel.setProgress(100);
-            tvXpRemaining.setText("Max Level Reached!");
-        } else {
-            int xpInCurrentLevel = currentXp - baseXP;
-            int xpRequiredForThisLevel = nextXp - baseXP;
-            pbLevel.setMax(xpRequiredForThisLevel);
-            
-            ObjectAnimator animation = ObjectAnimator.ofInt(pbLevel, "progress", 0, xpInCurrentLevel);
-            animation.setDuration(1200); // 1.2 seconds smooth animation
-            animation.setInterpolator(new DecelerateInterpolator());
-            animation.start();
-            
-            tvXpRemaining.setText((nextXp - currentXp) + " XP to next level");
-        }
+        updateGamificationUI();
 
         postsContainer = view.findViewById(R.id.posts_container);
         tvLoading = view.findViewById(R.id.tv_loading_posts);
@@ -89,18 +85,20 @@ public class HomeFragment extends Fragment {
             ApiClient.getApi().createPost(userId, content, "").enqueue(new Callback<JsonObject>() {
                 @Override
                 public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                    if (!isAdded() || getContext() == null) return;
                     if (response.isSuccessful()) {
                         etNewPost.setText("");
-                        Toast.makeText(requireContext(), "Posted!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Posted!", Toast.LENGTH_SHORT).show();
                         loadFeed(); // Reload feed
                     } else {
-                        Toast.makeText(requireContext(), "Failed to create post", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Failed to create post", Toast.LENGTH_SHORT).show();
                     }
                 }
 
                 @Override
                 public void onFailure(Call<JsonObject> call, Throwable t) {
-                    Toast.makeText(requireContext(), "Network Error", Toast.LENGTH_SHORT).show();
+                    if (!isAdded() || getContext() == null) return;
+                    Toast.makeText(getContext(), "Network Error", Toast.LENGTH_SHORT).show();
                 }
             });
         });
@@ -110,10 +108,62 @@ public class HomeFragment extends Fragment {
         return view;
     }
 
+    private void updateGamificationUI() {
+        if (!isAdded() || getContext() == null) return;
+        
+        tvLevel.setText("Level: " + gamificationManager.getCurrentLevel());
+        tvXp.setText(gamificationManager.getTotalXP() + " XP (Total)");
+
+        int currentXp = gamificationManager.getTotalXP();
+        int baseXP = gamificationManager.getBaseXPForCurrentLevel();
+        int nextXp = gamificationManager.getXPForNextLevel();
+        
+        if (currentXp >= 1000) {
+            pbLevel.setMax(100);
+            pbLevel.setProgress(100);
+            tvXpRemaining.setText("Max Level Reached!");
+        } else {
+            int xpInCurrentLevel = currentXp - baseXP;
+            int xpRequiredForThisLevel = nextXp - baseXP;
+            pbLevel.setMax(xpRequiredForThisLevel);
+            
+            ObjectAnimator animation = ObjectAnimator.ofInt(pbLevel, "progress", pbLevel.getProgress(), xpInCurrentLevel);
+            animation.setDuration(1200); // 1.2 seconds smooth animation
+            animation.setInterpolator(new DecelerateInterpolator());
+            animation.start();
+            
+            tvXpRemaining.setText((nextXp - currentXp) + " XP to next level");
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            requireContext().registerReceiver(statsReceiver, new IntentFilter("STEPS_UPDATED"), Context.RECEIVER_NOT_EXPORTED);
+            requireContext().registerReceiver(statsReceiver, new IntentFilter("STATS_UPDATED"), Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            requireContext().registerReceiver(statsReceiver, new IntentFilter("STEPS_UPDATED"));
+            requireContext().registerReceiver(statsReceiver, new IntentFilter("STATS_UPDATED"));
+        }
+        updateGamificationUI();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        try {
+            requireContext().unregisterReceiver(statsReceiver);
+        } catch (IllegalArgumentException e) {
+            // Ignored
+        }
+    }
+
     private void loadFeed() {
         ApiClient.getApi().getFeed(1).enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                if (!isAdded() || getContext() == null) return;
                 if (response.isSuccessful() && response.body() != null) {
                     postsContainer.removeAllViews();
                     if (response.body().has("posts") && response.body().get("posts").isJsonArray()) {
@@ -139,6 +189,7 @@ public class HomeFragment extends Fragment {
 
             @Override
             public void onFailure(Call<JsonObject> call, Throwable t) {
+                if (!isAdded() || getContext() == null) return;
                 renderMockFeed(); // Render mock feed if network fails so it isn't empty visually
             }
         });
@@ -152,7 +203,10 @@ public class HomeFragment extends Fragment {
     }
 
     private void addPostToFeed(String author, String content) {
-        LinearLayout card = new LinearLayout(requireContext());
+        Context context = getContext();
+        if (context == null) return;
+
+        LinearLayout card = new LinearLayout(context);
         card.setOrientation(LinearLayout.VERTICAL);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
@@ -161,13 +215,13 @@ public class HomeFragment extends Fragment {
         card.setBackgroundColor(Color.parseColor("#1E1E1E"));
         card.setPadding(32, 32, 32, 32);
 
-        TextView tvAuthor = new TextView(requireContext());
+        TextView tvAuthor = new TextView(context);
         tvAuthor.setText(author);
         tvAuthor.setTextColor(Color.parseColor("#03DAC5"));
         tvAuthor.setTextSize(16f);
         tvAuthor.setTypeface(null, android.graphics.Typeface.BOLD);
 
-        TextView tvContent = new TextView(requireContext());
+        TextView tvContent = new TextView(context);
         tvContent.setText(content);
         tvContent.setTextColor(Color.WHITE);
         tvContent.setTextSize(14f);

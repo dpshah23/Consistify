@@ -115,25 +115,64 @@ def get_weekly_chart_data(request):
             return JsonResponse({"error": "User not found"}, status=404)
 
 
+from django.db.models import Sum
+from gamification.models import XPLog
+
 @csrf_exempt
 def get_leaderboard(request):
     """
     Returns top users sorted by XP or Consistency Score.
+    Supports ?timeframe=daily | weekly | all_time
     """
     if request.method == "GET":
-        # Get top 10 from UserStats based on XP
-        top_users = UserStats.objects.select_related('user').order_by('-xp')[:10]
-        
+        timeframe = request.GET.get("timeframe", "all_time")
+        today = timezone.now().date()
         leaderboard_data = []
-        for index, stats in enumerate(top_users):
-            leaderboard_data.append({
-                "rank": index + 1,
-                "username": stats.user.username,
-                "xp": stats.xp,
-                "level": stats.level,
-                "consistency": stats.consistency_score,
-                "user_id": stats.user.id
-            })
+
+        if timeframe == "daily":
+            logs = XPLog.objects.filter(created_at__date=today)
+            user_xp = logs.values('user__id', 'user__username').annotate(
+                total_xp=Sum('xp_amount')
+            ).order_by('-total_xp')[:10]
             
-        # Optional: update Leaderboard model if needed, but dynamic querying is better for realtime Leaderboard
+            for index, item in enumerate(user_xp):
+                leaderboard_data.append({
+                    "rank": index + 1,
+                    "username": item['user__username'],
+                    "xp": item['total_xp'],
+                    "level": "?", # Complex to join, mock or ignore for timeframe
+                    "consistency": 0,
+                    "user_id": str(item['user__id'])
+                })
+
+        elif timeframe == "weekly":
+            start_of_week = today - datetime.timedelta(days=7) # past 7 days
+            logs = XPLog.objects.filter(created_at__date__gte=start_of_week)
+            user_xp = logs.values('user__id', 'user__username').annotate(
+                total_xp=Sum('xp_amount')
+            ).order_by('-total_xp')[:10]
+            
+            for index, item in enumerate(user_xp):
+                leaderboard_data.append({
+                    "rank": index + 1,
+                    "username": item['user__username'],
+                    "xp": item['total_xp'],
+                    "level": "?",
+                    "consistency": 0,
+                    "user_id": str(item['user__id'])
+                })
+
+        else:
+            # All-time relies on UserStats which caches the total
+            top_users = UserStats.objects.select_related('user').order_by('-xp')[:10]
+            for index, stats in enumerate(top_users):
+                leaderboard_data.append({
+                    "rank": index + 1,
+                    "username": stats.user.username,
+                    "xp": stats.xp,
+                    "level": stats.level,
+                    "consistency": stats.consistency_score,
+                    "user_id": str(stats.user.id)
+                })
+                
         return JsonResponse({"leaderboard": leaderboard_data})

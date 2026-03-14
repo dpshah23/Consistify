@@ -13,6 +13,10 @@
         android:icon="@drawable/ic_rewards"
         android:title="Rewards" />
     <item
+        android:id="@+id/nav_leaderboard"
+        android:icon="@drawable/ic_leaderboard"
+        android:title="Leaderboard" />
+    <item
         android:id="@+id/nav_profile"
         android:icon="@drawable/ic_profile"
         android:title="Profile" />

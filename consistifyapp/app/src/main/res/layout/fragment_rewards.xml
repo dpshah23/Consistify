@@ -72,6 +72,7 @@
                     android:textStyle="bold" />
                     
                 <Button
+                    android:id="@+id/btn_reward_sticker"
                     android:layout_width="wrap_content"
                     android:layout_height="40dp"
                     android:text="200 💰"
@@ -100,6 +101,7 @@
                     android:textStyle="bold" />
                     
                 <Button
+                    android:id="@+id/btn_reward_wristband"
                     android:layout_width="wrap_content"
                     android:layout_height="40dp"
                     android:text="500 💰"
@@ -128,9 +130,97 @@
                     android:textStyle="bold" />
                     
                 <Button
+                    android:id="@+id/btn_reward_towel"
                     android:layout_width="wrap_content"
                     android:layout_height="40dp"
                     android:text="900 💰"
+                    android:backgroundTint="#2E4FC7"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold"/>
+            </LinearLayout>
+
+            <!-- Item 4 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_input_field"
+                android:padding="16dp"
+                android:layout_marginBottom="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+                
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Premium Shaker"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+                    
+                <Button
+                    android:id="@+id/btn_reward_shaker"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:text="1500 💰"
+                    android:backgroundTint="#2E4FC7"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold"/>
+            </LinearLayout>
+
+            <!-- Item 5 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_input_field"
+                android:padding="16dp"
+                android:layout_marginBottom="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+                
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Smart Jump Rope"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+                    
+                <Button
+                    android:id="@+id/btn_reward_jumprope"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:text="2500 💰"
+                    android:backgroundTint="#2E4FC7"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold"/>
+            </LinearLayout>
+
+            <!-- Item 6 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_input_field"
+                android:padding="16dp"
+                android:layout_marginBottom="40dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+                
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="1 Month Pro Plan"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+                    
+                <Button
+                    android:id="@+id/btn_reward_pro"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:text="5000 💰"
                     android:backgroundTint="#2E4FC7"
                     android:textColor="#FFFFFF"
                     android:textStyle="bold"/>

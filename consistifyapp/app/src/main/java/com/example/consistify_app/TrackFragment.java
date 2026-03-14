@@ -175,6 +175,11 @@ import java.util.concurrent.Executors;
                 cameraProvider.unbindAll();
             }
 
+            // Notify other fragments of the new stats
+            Intent updateIntent = new Intent("STATS_UPDATED");
+            updateIntent.setPackage(requireContext().getPackageName());
+            requireContext().sendBroadcast(updateIntent);
+
             Toast.makeText(requireContext(), "Session Ended. " + squats + " squats, " + pushups + " pushups logged!", Toast.LENGTH_LONG).show();
             
             // Reset counters
@@ -220,7 +225,11 @@ import java.util.concurrent.Executors;
     @Override
     public void onPause() {
         super.onPause();
-        requireContext().unregisterReceiver(stepReceiver);
+        try {
+            requireContext().unregisterReceiver(stepReceiver);
+        } catch (IllegalArgumentException e) {
+            Log.e(TAG, "stepReceiver not registered", e);
+        }
     }
 
     private boolean hasCameraPermission() {

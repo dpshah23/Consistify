@@ -5,6 +5,9 @@ import androidx.annotation.NonNull;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
+import com.google.gson.JsonObject;
+import retrofit2.Response;
+
 public class MidnightSyncWorker extends Worker {
 
     public MidnightSyncWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
@@ -14,22 +17,34 @@ public class MidnightSyncWorker extends Worker {
     @NonNull
     @Override
     public Result doWork() {
-        // Logic to sync with backend API at 12 AM
-        // Get local Gamification stats and push to server
-        // Example logic:
-        // 1. Fetch current Gamification stats (Current Level, XP, Coins) from GamificationDatabaseHelper
-        // 2. Fetch Daily activity (squats, pushups, steps)
-        // 3. Make Retrofit API call to server.
-        // If it throws exception or fails, return Result.retry() 
-        // WorkManager handles the network constraints automatically if we enqueue it with Constraints.
-        
         try {
             GamificationManager gamificationManager = new GamificationManager(getApplicationContext());
-            int totalXP = gamificationManager.getTotalXP();
-            // NetworkCallSync...
-            
-            // Assume success if no exceptions thrown
-            return Result.success();
+            AuthManager authManager = new AuthManager(getApplicationContext());
+            String userId = authManager.getUserId();
+
+            if (userId == null || userId.isEmpty()) {
+                return Result.failure();
+            }
+
+            int dailySteps = gamificationManager.getDailySteps();
+            int dailySquats = gamificationManager.getDailySquats();
+            int dailyPushups = gamificationManager.getDailyPushups();
+
+            Response<JsonObject> response = ApiClient.getApi()
+                    .syncGamification(userId, dailySquats, dailyPushups, dailySteps)
+                    .execute(); // Synchronous call is safe inside Worker
+
+            if (response.isSuccessful() && response.body() != null) {
+                // Future consideration: Parse the level up/consistency score
+                // and show a massive notification if they leveled up.
+                // JsonObject data = response.body();
+                // boolean leveledUp = data.has("level_up") && data.get("level_up").getAsBoolean();
+                
+                gamificationManager.resetDailyStats();
+                return Result.success();
+            } else {
+                return Result.retry();
+            }
             
         } catch (Exception e) {
             e.printStackTrace();

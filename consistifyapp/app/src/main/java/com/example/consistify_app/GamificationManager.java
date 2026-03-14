@@ -104,6 +104,17 @@ public class GamificationManager {
         return coins;
     }
 
+    public boolean deductFitCoins(int amount) {
+        if (getFitCoins() >= amount) {
+            SQLiteDatabase db = dbHelper.getWritableDatabase();
+            db.execSQL("UPDATE " + GamificationDatabaseHelper.TABLE_USER_PROFILE + 
+                    " SET total_fitcoins = total_fitcoins - " + amount + 
+                    " WHERE id = 1");
+            return true;
+        }
+        return false;
+    }
+
     public String getCurrentLevel() {
         int xp = getTotalXP();
         if (xp < 100) return "🐢 Tortoise";
@@ -139,5 +150,31 @@ public class GamificationManager {
         if (c.moveToFirst()) steps = c.getInt(0);
         c.close();
         return steps;
+    }
+
+    public int getDailySquats() {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        String today = GamificationDatabaseHelper.getTodayDateString();
+        Cursor c = db.rawQuery("SELECT " + GamificationDatabaseHelper.COLUMN_SQUATS + " FROM " + GamificationDatabaseHelper.TABLE_DAILY_STATS + " WHERE date = ?", new String[]{today});
+        int squats = 0;
+        if (c.moveToFirst()) squats = c.getInt(0);
+        c.close();
+        return squats;
+    }
+
+    public int getDailyPushups() {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        String today = GamificationDatabaseHelper.getTodayDateString();
+        Cursor c = db.rawQuery("SELECT " + GamificationDatabaseHelper.COLUMN_PUSHUPS + " FROM " + GamificationDatabaseHelper.TABLE_DAILY_STATS + " WHERE date = ?", new String[]{today});
+        int pushups = 0;
+        if (c.moveToFirst()) pushups = c.getInt(0);
+        c.close();
+        return pushups;
+    }
+
+    public void resetDailyStats() {
+        // Technically this worker runs at midnight, but just in case,
+        // rather than deleting, we let ensureDailyRecordExists() spawn a new day entry tomorrow.
+        // We can optionally clear the active memory cache here if any exist.
     }
 }

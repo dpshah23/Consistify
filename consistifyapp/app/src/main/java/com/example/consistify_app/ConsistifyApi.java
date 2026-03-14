@@ -35,4 +35,16 @@ public interface ConsistifyApi {
             @Field("content") String content,
             @Field("image") String imageBase64
     );
+
+    @FormUrlEncoded
+    @POST("gamification/process/")
+    Call<JsonObject> syncGamification(
+            @Field("user_id") String userId,
+            @Field("squats") int squats,
+            @Field("pushups") int pushups,
+            @Field("steps") int steps
+    );
+
+    @GET("analytics/leaderboard/")
+    Call<JsonObject> getLeaderboard(@Query("timeframe") String timeframe);
 }

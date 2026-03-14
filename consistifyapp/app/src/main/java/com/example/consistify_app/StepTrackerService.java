@@ -100,6 +100,7 @@ public class StepTrackerService extends Service implements SensorEventListener {
 
     private void sendBroadcastUpdate(int newSteps, float distance, float cals, float speed) {
         Intent intent = new Intent("STEPS_UPDATED");
+        intent.setPackage(getPackageName()); // Ensure explicit broadcast to self
         intent.putExtra("TOTAL_STEPS", gamificationManager.getDailySteps());
         intent.putExtra("DISTANCE", distance);
         intent.putExtra("CALORIES", cals);
