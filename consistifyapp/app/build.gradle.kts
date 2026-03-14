@@ -37,6 +37,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+    implementation("androidx.core:core-splashscreen:1.0.1")
 
     // CameraX
     val camerax_version = "1.3.4"
