@@ -22,4 +22,5 @@ urlpatterns = [
     path('api/activity/', include('activity.urls')),
     path('api/analytics/', include('analytics.urls')),
     path('api/gamification/', include('gamification.urls')),
+    path('api/reward/', include('reward.urls')),
 ]

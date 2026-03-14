@@ -6,6 +6,7 @@ class RewardItem(models.Model):
     description = models.TextField()
     coin_cost = models.IntegerField()
     stock = models.IntegerField()
+    required_level = models.CharField(max_length=50, default="Tortoise")
 
     def __str__(self):
         return self.name
