@@ -12,6 +12,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import com.google.gson.JsonObject;
+
 public class ProfileFragment extends Fragment {
     @Nullable
     @Override
@@ -34,6 +39,32 @@ public class ProfileFragment extends Fragment {
         
         TextView tvStreak = view.findViewById(R.id.tv_streak);
         tvStreak.setText(streak + " Days \uD83D\uDD25"); // Fire emoji
+
+        // Fetch dynamic profile
+        TextView tvUsername = view.findViewById(R.id.tv_username);
+        AuthManager authManager = new AuthManager(requireContext());
+        String userId = authManager.getUserId();
+        
+        if (userId != null) {
+            ApiClient.getApi().getProfile(userId).enqueue(new Callback<JsonObject>() {
+                @Override
+                public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
+                    if (isAdded() && getContext() != null && response.isSuccessful() && response.body() != null) {
+                        if (response.body().has("user")) {
+                            JsonObject user = response.body().getAsJsonObject("user");
+                            if (user.has("username") && !user.get("username").isJsonNull()) {
+                                tvUsername.setText(user.get("username").getAsString());
+                            }
+                        }
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<JsonObject> call, Throwable t) {
+                    // Fall back to static text if needed
+                }
+            });
+        }
 
         return view;
     }

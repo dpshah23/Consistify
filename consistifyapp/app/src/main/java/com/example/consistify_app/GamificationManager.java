@@ -30,22 +30,42 @@ public class GamificationManager {
     }
 
     public void addSquats(int count) {
-        int xpGained = count;
-        int coinsGained = count / 2; // 0.5 per squat integer math
+        int currentSquats = getDailySquats();
+        int newSquats = currentSquats + count;
+
+        int currentCoins = currentSquats / 2;
+        int newCoins = newSquats / 2;
+        int coinsGained = newCoins - currentCoins;
         
-        addProgress(GamificationDatabaseHelper.COLUMN_SQUATS, count, xpGained, coinsGained);
+        addProgress(GamificationDatabaseHelper.COLUMN_SQUATS, count, count, coinsGained);
     }
 
     public void addPushups(int count) {
-        int xpGained = (int) (count * 1.2);
-        int coinsGained = (int) (count * 0.6);
+        int currentPushups = getDailyPushups();
+        int newPushups = currentPushups + count;
+
+        int currentXp = (int) (currentPushups * 1.2);
+        int newXp = (int) (newPushups * 1.2);
+        int xpGained = newXp - currentXp;
+
+        int currentCoins = (int) (currentPushups * 0.6);
+        int newCoins = (int) (newPushups * 0.6);
+        int coinsGained = newCoins - currentCoins;
 
         addProgress(GamificationDatabaseHelper.COLUMN_PUSHUPS, count, xpGained, coinsGained);
     }
 
     public void addSteps(int count) {
-        int xpGained = (int) (count * 0.005);
-        int coinsGained = (int) (count * 0.003);
+        int currentSteps = getDailySteps();
+        int newSteps = currentSteps + count;
+
+        int currentXp = (int) (currentSteps * 0.005);
+        int newXp = (int) (newSteps * 0.005);
+        int xpGained = newXp - currentXp;
+
+        int currentCoins = (int) (currentSteps * 0.003);
+        int newCoins = (int) (newSteps * 0.003);
+        int coinsGained = newCoins - currentCoins;
 
         addProgress(GamificationDatabaseHelper.COLUMN_STEPS, count, xpGained, coinsGained);
     }

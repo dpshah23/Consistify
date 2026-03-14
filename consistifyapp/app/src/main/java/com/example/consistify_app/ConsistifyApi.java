@@ -25,6 +25,9 @@ public interface ConsistifyApi {
             @Field("password") String password
     );
 
+    @GET("accounts/profile/{user_id}/")
+    Call<JsonObject> getProfile(@Path("user_id") String userId);
+
     @GET("social/feed/{page}/")
     Call<JsonObject> getFeed(@Path("page") int page, @Query("user_id") String userId);
 

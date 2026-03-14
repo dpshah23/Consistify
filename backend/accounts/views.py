@@ -75,9 +75,8 @@ def login(request):
         
 
 @csrf_exempt
-def profile(request):
+def profile(request, user_id):
     if request.method=="GET":
-        user_id = request.GET.get("user_id")
         try:
             user = UserCustom.objects.get(id=user_id)
             return JsonResponse({"user":{"id":user.id,"email":user.email,"username":user.username}})
