@@ -4,8 +4,8 @@ Built with ❤️ at Reckon 7.0 Hackathon (March 2026)
 ---
 
 ## 📋 Table of Contents
-- [Overview](#overview)
-- [Problem Statement](#problem-statement)
+- [Overview](##overview)
+- [Problem Statement](##problem-statement)
 - [Target Users & Pain Points](#target-users--pain-points)
 - [Core Philosophy](#core-philosophy)
 - [Solution Architecture](#solution-architecture)
